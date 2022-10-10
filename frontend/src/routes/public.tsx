@@ -1,8 +1,8 @@
-import { About } from '@/features/misc';
+import { NewImage } from '@/features/misc';
 
 export const publicRoutes = [
   {
-    path: '/about',
-    element: <About />,
+    path: '/images/new',
+    element: <NewImage />,
   },
 ];
