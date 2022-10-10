@@ -44,7 +44,7 @@ export const NewImage = () => {
               src={objectUrl}
               width="280px"
               height="280px"
-              style={{ border: '1px', borderRadius: '5%' }}
+              style={{ border: '1px', borderRadius: '5%', objectFit: 'cover' }}
             />
           )}
           <button type="submit" disabled={!fileInput.value}>

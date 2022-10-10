@@ -22,7 +22,7 @@ struct Create {
 #[post("/storages")]
 async fn create(pool: Data<PgPool>, form: Json<Create>) -> Result<Json<String>> {
     let bytes = base64::decode(form.encoded_bytes.clone())?;
-    let new_blob = NewBlob::new(bytes, Some(form.metadata.clone()));
+    let new_blob = NewBlob::new(bytes, Some(serde_json::to_string(&form.metadata.clone())?));
     let blob_id = storage::insert(&pool, new_blob).await?;
     Ok(Json(blob_id))
 }

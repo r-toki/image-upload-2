@@ -8,14 +8,14 @@ use sqlx::{query, query_as, PgPool};
 #[derive(new, Debug, Serialize, Deserialize)]
 pub struct NewBlob {
     pub bytes: Vec<u8>,
-    pub metadata: Option<Metadata>,
+    pub metadata: Option<String>,
 }
 
 #[derive(new, Debug, Serialize, Deserialize)]
 pub struct Blob {
     pub id: String,
     pub bytes: Vec<u8>,
-    pub metadata: Option<Metadata>,
+    pub metadata: Option<String>,
     pub created_at: DateTime<Utc>,
 }
 
@@ -47,11 +47,6 @@ pub async fn find(pool: &PgPool, blob_id: String) -> anyhow::Result<Blob> {
 }
 
 pub async fn insert(pool: &PgPool, new_blob: NewBlob) -> anyhow::Result<String> {
-    let metadata = match new_blob.metadata {
-        Some(metadata) => Some(serde_json::to_string(&metadata)?),
-        None => None,
-    };
-
     let blob = query!(
         r#"
 insert into blobs (id, bytes, metadata, created_at)
@@ -60,7 +55,7 @@ returning id
         "#,
         get_new_id(),
         new_blob.bytes,
-        metadata,
+        new_blob.metadata,
     )
     .fetch_one(pool)
     .await?;
