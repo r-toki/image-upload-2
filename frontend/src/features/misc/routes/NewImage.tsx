@@ -32,7 +32,13 @@ export const NewImage = () => {
             onChange={fileInput.onChange}
             style={{ display: 'none' }}
           />
-          <button onClick={fileInput.onClick}>Upload</button>
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <button onClick={fileInput.onClick}>Upload</button>
+            <button onClick={fileInput.reset} disabled={!fileInput.value}>
+              Reset
+            </button>
+          </div>
+
           {objectUrl && (
             <img
               src={objectUrl}

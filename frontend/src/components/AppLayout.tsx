@@ -15,7 +15,7 @@ export const AppLayout = ({ children }: { children: ReactNode }) => {
     >
       <div style={{ display: 'flex', gap: '8px' }}>
         <Link to="/">Lading</Link>
-        <Link to="/images/new">NewImage</Link>
+        <Link to="/home">Home</Link>
       </div>
       <div>{children}</div>
     </div>

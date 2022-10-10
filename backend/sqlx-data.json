@@ -1,5 +1,40 @@
 {
   "db": "PostgreSQL",
+  "299b7a9b2c849f70942510f411cb67b1b556ebd29e45a05093590fcd29b8c138": {
+    "describe": {
+      "columns": [
+        {
+          "name": "id",
+          "ordinal": 0,
+          "type_info": "Text"
+        }
+      ],
+      "nullable": [
+        false
+      ],
+      "parameters": {
+        "Left": [
+          "Text",
+          "Text"
+        ]
+      }
+    },
+    "query": "\ninsert into tweets (id, body, created_at)\nvalues ($1, $2, current_timestamp)\nreturning id\n        "
+  },
+  "91dede3530b8fd5d606056026d5fbddbc264918bfcfb24ba2551acf84a89b94d": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          "Text",
+          "Text",
+          "Text"
+        ]
+      }
+    },
+    "query": "\ninsert into attachments (id, record_type, record_name, record_id, blob_id)\nvalues ($1, 'tweets', 'images', $2, $3)\n            "
+  },
   "ca6f89a4a15da72378cb915a83f9145408f625cbbddc834c27b736b249653dea": {
     "describe": {
       "columns": [
