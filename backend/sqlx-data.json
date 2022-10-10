@@ -1,0 +1,39 @@
+{
+  "db": "PostgreSQL",
+  "41f1c0b63ce1c98a083ffc3b7ef26a29192b6441e0cbc8277a07a2cd2dde4fa6": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          "Text",
+          "Text",
+          "Text",
+          "Int4"
+        ]
+      }
+    },
+    "query": "\ninsert into attachments (record_type, record_name, record_id, blob_id)\nvalues ($1, $2, $3, $4)\n        "
+  },
+  "8003014fc5c793ccc4a09f8f13cc257edaff96dbd76bab1deb8d6b692fea4ef8": {
+    "describe": {
+      "columns": [
+        {
+          "name": "id",
+          "ordinal": 0,
+          "type_info": "Int4"
+        }
+      ],
+      "nullable": [
+        false
+      ],
+      "parameters": {
+        "Left": [
+          "Bytea",
+          "Text"
+        ]
+      }
+    },
+    "query": "\ninsert into blobs (bytes, metadata, created_at)\nvalues ($1, $2, current_timestamp)\nreturning id\n        "
+  }
+}
