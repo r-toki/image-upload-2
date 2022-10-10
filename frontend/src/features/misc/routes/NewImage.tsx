@@ -3,7 +3,8 @@ import { FormEventHandler } from 'react';
 import { AppLayout } from '@/components/AppLayout';
 import { useFileInput } from '@/hooks/useFileInput';
 import { useObjectUrl } from '@/hooks/useObjectUrl';
-import { encodeFile } from '@/lib/encode-file';
+import { axios } from '@/lib/axios';
+import { EncodedFile } from '@/lib/encoded-file';
 
 export const NewImage = () => {
   const fileInput = useFileInput();
@@ -12,8 +13,14 @@ export const NewImage = () => {
   const onSubmit: FormEventHandler = async (e) => {
     e.preventDefault();
     if (fileInput.value) {
-      const { contentType, encoded } = await encodeFile(fileInput.value);
-      console.log(contentType, encoded);
+      const encodedFile = await EncodedFile.fromFile(fileInput.value);
+      await axios
+        .post('/storages', {
+          encodedBytes: encodedFile.encodedBytes,
+          metadata: { contentType: encodedFile.contentType },
+        })
+        .then(console.log);
+      fileInput.reset();
     }
   };
 
@@ -37,9 +44,12 @@ export const NewImage = () => {
               src={objectUrl}
               width="280px"
               height="280px"
-              style={{ border: '1px', borderRadius: '10%' }}
+              style={{ border: '1px', borderRadius: '5%' }}
             />
           )}
+          <button type="submit" disabled={!fileInput.value}>
+            Submit
+          </button>
         </form>
       </div>
     </AppLayout>

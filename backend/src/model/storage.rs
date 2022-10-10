@@ -20,6 +20,7 @@ pub struct Blob {
 }
 
 #[derive(new, Debug, Serialize, Deserialize, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct Metadata {
     pub content_type: String,
 }
@@ -41,13 +42,11 @@ pub struct Attachment {
     pub blob_id: Option<String>,
 }
 
-async fn find(pool: PgPool, blob_id: String) -> anyhow::Result<Blob> {
+pub async fn find(pool: &PgPool, blob_id: String) -> anyhow::Result<Blob> {
     todo!()
 }
 
-async fn insert(pool: PgPool, new_blob: NewBlob) -> anyhow::Result<String> {
-    let mut tx = pool.begin().await?;
-
+pub async fn insert(pool: &PgPool, new_blob: NewBlob) -> anyhow::Result<String> {
     let metadata = match new_blob.metadata {
         Some(metadata) => Some(serde_json::to_string(&metadata)?),
         None => None,
@@ -63,12 +62,12 @@ returning id
         new_blob.bytes,
         metadata,
     )
-    .fetch_one(&mut tx)
+    .fetch_one(pool)
     .await?;
 
     Ok(blob.id)
 }
 
-async fn delete(pool: PgPool, blob_id: String) -> anyhow::Result<()> {
+pub async fn delete(pool: &PgPool, blob_id: String) -> anyhow::Result<()> {
     todo!()
 }
