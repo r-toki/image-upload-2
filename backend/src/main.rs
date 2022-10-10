@@ -1,9 +1,10 @@
+mod controller;
 mod lib;
 mod model;
 
 use crate::lib::{config::CONFIG, cors::cors};
 
-use actix_web::{get, middleware::Logger, web, App, HttpServer, Responder};
+use actix_web::{get, middleware::Logger, web::Data, App, HttpServer, Responder};
 use dotenv::dotenv;
 use sqlx::PgPool;
 
@@ -16,10 +17,11 @@ async fn main() -> std::io::Result<()> {
 
     HttpServer::new(move || {
         App::new()
-            .app_data(web::Data::new(pool.clone()))
+            .app_data(Data::new(pool.clone()))
             .wrap(Logger::default())
             .wrap(cors())
             .service(index)
+            .configure(controller::init)
     })
     .bind(format!("{}:{}", CONFIG.host, CONFIG.port))?
     .run()

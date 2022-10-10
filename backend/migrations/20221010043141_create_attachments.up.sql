@@ -3,5 +3,5 @@ create table attachments (
   record_type text,
   record_name text,
   record_id text,
-  blob_id integer
+  blob_id text
 );
