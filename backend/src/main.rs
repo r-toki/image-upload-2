@@ -1,4 +1,5 @@
 mod lib;
+mod model;
 
 use crate::lib::{config::CONFIG, cors::cors};
 
