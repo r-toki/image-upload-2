@@ -1,8 +1,7 @@
-mod lib;
-pub mod storages;
+mod blobs;
 
 use actix_web::web::ServiceConfig;
 
 pub fn init(cfg: &mut ServiceConfig) {
-    storages::init(cfg);
+    blobs::init(cfg);
 }

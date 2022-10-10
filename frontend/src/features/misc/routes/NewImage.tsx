@@ -15,9 +15,9 @@ export const NewImage = () => {
     if (fileInput.value) {
       const encodedFile = await EncodedFile.fromFile(fileInput.value);
       await axios
-        .post('/storages', {
+        .post('/blobs', {
           encodedBytes: encodedFile.encodedBytes,
-          metadata: { contentType: encodedFile.contentType },
+          contentType: encodedFile.contentType,
         })
         .then(console.log);
       fileInput.reset();

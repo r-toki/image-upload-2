@@ -1,6 +1,6 @@
-mod controller;
+mod database;
 mod lib;
-mod model;
+mod routes;
 
 use crate::lib::{config::CONFIG, cors::cors};
 
@@ -21,7 +21,7 @@ async fn main() -> std::io::Result<()> {
             .wrap(Logger::default())
             .wrap(cors())
             .service(index)
-            .configure(controller::init)
+            .configure(routes::init)
     })
     .bind(format!("{}:{}", CONFIG.host, CONFIG.port))?
     .run()
