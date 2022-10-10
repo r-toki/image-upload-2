@@ -1,27 +1,21 @@
 import { FormEventHandler } from 'react';
 
 import { AppLayout } from '@/components/AppLayout';
+import { useCreateBlob } from '@/hooks/useCreateBlob';
 import { useFileInput } from '@/hooks/useFileInput';
 import { useObjectUrl } from '@/hooks/useObjectUrl';
-import { axios } from '@/lib/axios';
-import { EncodedFile } from '@/lib/encoded-file';
 
 export const NewImage = () => {
+  const [, createBlob] = useCreateBlob();
+
   const fileInput = useFileInput();
   const { objectUrl } = useObjectUrl(fileInput.value);
 
   const onSubmit: FormEventHandler = async (e) => {
     e.preventDefault();
-    if (fileInput.value) {
-      const encodedFile = await EncodedFile.fromFile(fileInput.value);
-      await axios
-        .post('/blobs', {
-          encodedBytes: encodedFile.encodedBytes,
-          contentType: encodedFile.contentType,
-        })
-        .then(console.log);
-      fileInput.reset();
-    }
+    if (!fileInput.value) return;
+    await createBlob(fileInput.value);
+    fileInput.reset();
   };
 
   return (
