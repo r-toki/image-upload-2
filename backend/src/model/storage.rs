@@ -19,8 +19,7 @@ pub struct Blob {
     pub created_at: DateTime<Utc>,
 }
 
-#[derive(new, Debug, Serialize, Deserialize, Clone)]
-#[serde(rename_all = "camelCase")]
+#[derive(new, Debug, Serialize, Deserialize)]
 pub struct Metadata {
     pub content_type: String,
 }
