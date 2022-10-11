@@ -1,6 +1,8 @@
 import { FormEventHandler } from 'react';
 
 import { AppLayout } from '@/components/AppLayout';
+import { useCreateBlob } from '@/hooks/useCreateBlob';
+import { useCreateTweet } from '@/hooks/useCreateTweet';
 import { useMultipleFileInput } from '@/hooks/useMultipleFileInput';
 import { useObjectUrl } from '@/hooks/useObjectUrl';
 import { useTextInput } from '@/hooks/useTextInput';
@@ -14,11 +16,22 @@ export const Home = () => {
 };
 
 const TweetCreateForm = () => {
+  const [, createBlob] = useCreateBlob();
+  const [, createTweet] = useCreateTweet();
+
   const bodyInput = useTextInput();
   const multipleFilesInput = useMultipleFileInput();
 
-  const onSubmit: FormEventHandler = (e) => {
+  const onSubmit: FormEventHandler = async (e) => {
     e.preventDefault();
+    const body = bodyInput.value;
+    const files = multipleFilesInput.value;
+
+    const blobIds = await Promise.all(files.map(createBlob));
+    await createTweet({ body, blobIds });
+
+    bodyInput.reset();
+    multipleFilesInput.reset();
   };
 
   return (

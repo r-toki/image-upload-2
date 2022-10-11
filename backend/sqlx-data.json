@@ -1,27 +1,21 @@
 {
   "db": "PostgreSQL",
-  "299b7a9b2c849f70942510f411cb67b1b556ebd29e45a05093590fcd29b8c138": {
+  "2a5dfafe9cd7a7ddaca25b39d4ef3bc46706b026a84c961a39ae4d8e24d70df8": {
     "describe": {
-      "columns": [
-        {
-          "name": "id",
-          "ordinal": 0,
-          "type_info": "Text"
-        }
-      ],
-      "nullable": [
-        false
-      ],
+      "columns": [],
+      "nullable": [],
       "parameters": {
         "Left": [
           "Text",
-          "Text"
+          "Bytea",
+          "Text",
+          "Timestamptz"
         ]
       }
     },
-    "query": "\ninsert into tweets (id, body, created_at)\nvalues ($1, $2, current_timestamp)\nreturning id\n        "
+    "query": "\ninsert into blobs (id, bytes, metadata, created_at)\nvalues ($1, $2, $3, $4)\n            "
   },
-  "91dede3530b8fd5d606056026d5fbddbc264918bfcfb24ba2551acf84a89b94d": {
+  "bbd8976ece944eb37a5fcf1922a6ec090429bbfbe0962528b412e60976233bf0": {
     "describe": {
       "columns": [],
       "nullable": [],
@@ -29,32 +23,26 @@
         "Left": [
           "Text",
           "Text",
+          "Text",
+          "Text",
           "Text"
         ]
       }
     },
-    "query": "\ninsert into attachments (id, record_type, record_name, record_id, blob_id)\nvalues ($1, 'tweets', 'images', $2, $3)\n            "
+    "query": "\ninsert into attachments (id, record_type, record_name, record_id, blob_id)\nvalues ($1, $2, $3, $4, $5)\n            "
   },
-  "ca6f89a4a15da72378cb915a83f9145408f625cbbddc834c27b736b249653dea": {
+  "c58301e6b866196c5cba1bd45e7243ad19bb6765d354412b9725fa31a791524f": {
     "describe": {
-      "columns": [
-        {
-          "name": "id",
-          "ordinal": 0,
-          "type_info": "Text"
-        }
-      ],
-      "nullable": [
-        false
-      ],
+      "columns": [],
+      "nullable": [],
       "parameters": {
         "Left": [
           "Text",
-          "Bytea",
-          "Text"
+          "Text",
+          "Timestamptz"
         ]
       }
     },
-    "query": "\ninsert into blobs (id, bytes, metadata, created_at)\nvalues ($1, $2, $3, current_timestamp)\nreturning id\n        "
+    "query": "\ninsert into tweets (id, body, created_at)\nvalues ($1, $2, $3)\n        "
   }
 }

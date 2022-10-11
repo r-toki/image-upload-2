@@ -1,4 +1,4 @@
-import { useAsync } from 'react-use';
+import { useAsyncFn } from 'react-use';
 
 import { axios } from '@/lib/axios';
 
@@ -8,7 +8,7 @@ type CreateTweet = {
 };
 
 export const useCreateTweet = () => {
-  return useAsync(async ({ body, blobIds }: CreateTweet): Promise<null> => {
+  return useAsyncFn(async ({ body, blobIds }: CreateTweet): Promise<null> => {
     return axios.post('/tweets', { body, blobIds }).then((res) => res.data);
   });
 };
