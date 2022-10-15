@@ -25,6 +25,7 @@ sqlx = { version = "0.6", features = [
   "postgres",
   "offline",
   "chrono",
+  "json",
 ] }
 ulid = { version = "1.0", features = ["serde"] }
 validator = { version = "0.16", features = ["derive"] }

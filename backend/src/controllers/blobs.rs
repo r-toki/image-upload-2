@@ -1,7 +1,5 @@
-use crate::{
-    lib::error::Result,
-    models::command::blob::{Blob, Metadata},
-};
+use crate::lib::error::Result;
+use crate::models::command;
 
 use actix_web::{
     post,
@@ -18,21 +16,21 @@ pub fn init(cfg: &mut ServiceConfig) {
 #[serde(rename_all = "camelCase")]
 struct Create {
     encoded_bytes: String,
-    metadata: CreateMetadata,
+    metadata: Metadata,
 }
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
-struct CreateMetadata {
+struct Metadata {
     content_type: String,
 }
 
 #[post("/blobs")]
 async fn create(pool: Data<PgPool>, form: Json<Create>) -> Result<Json<String>> {
-    let blob = Blob::new(
+    let blob = command::Blob::new(
         form.encoded_bytes.clone(),
-        Metadata::new(form.metadata.content_type.clone()),
+        form.metadata.content_type.clone(),
     )?;
-    blob.insert(&**pool).await?;
+    blob.upsert(&**pool).await?;
     Ok(Json(blob.id))
 }

@@ -1,21 +1,158 @@
 {
   "db": "PostgreSQL",
-  "2a5dfafe9cd7a7ddaca25b39d4ef3bc46706b026a84c961a39ae4d8e24d70df8": {
+  "00ff3a33de9c1cbb9df2f7c76182554cf950ad8b08c51fd4847746c5eaa6eaf9": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          "Text"
+        ]
+      }
+    },
+    "query": "\ndelete from blobs\nwhere id = $1\n            "
+  },
+  "3a01946bb22b4ab6fb1ace120b9f1a714a95c77beef3e05c009d2b37125a4513": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          "Text"
+        ]
+      }
+    },
+    "query": "\ndelete from tweets\nwhere id = $1\n            "
+  },
+  "5bdd23153f231b6a621147e4900eced16456ee040816053ccffe72d70b4b15f0": {
+    "describe": {
+      "columns": [
+        {
+          "name": "id",
+          "ordinal": 0,
+          "type_info": "Text"
+        },
+        {
+          "name": "bytes",
+          "ordinal": 1,
+          "type_info": "Bytea"
+        },
+        {
+          "name": "metadata",
+          "ordinal": 2,
+          "type_info": "Json"
+        },
+        {
+          "name": "created_at",
+          "ordinal": 3,
+          "type_info": "Timestamptz"
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "parameters": {
+        "Left": [
+          "Text"
+        ]
+      }
+    },
+    "query": "\nselect * from blobs\nwhere id = $1\n            "
+  },
+  "8730e9c43748b748c60f9ee1cffde801c8f98c953a7ab714811dbf86d3688570": {
     "describe": {
       "columns": [],
       "nullable": [],
       "parameters": {
         "Left": [
           "Text",
-          "Bytea",
           "Text",
           "Timestamptz"
         ]
       }
     },
-    "query": "\ninsert into blobs (id, bytes, metadata, created_at)\nvalues ($1, $2, $3, $4)\n            "
+    "query": "\ninsert into tweets (id, body, created_at)\nvalues ($1, $2, $3)\non conflict (id)\ndo update\nset body = $2, created_at = $3\n            "
   },
-  "bbd8976ece944eb37a5fcf1922a6ec090429bbfbe0962528b412e60976233bf0": {
+  "a0bd598ea0848d5f6fbe9d801752583face656c85c464d3e5462b7f478db28d7": {
+    "describe": {
+      "columns": [
+        {
+          "name": "id",
+          "ordinal": 0,
+          "type_info": "Text"
+        },
+        {
+          "name": "record_type",
+          "ordinal": 1,
+          "type_info": "Text"
+        },
+        {
+          "name": "record_name",
+          "ordinal": 2,
+          "type_info": "Text"
+        },
+        {
+          "name": "record_id",
+          "ordinal": 3,
+          "type_info": "Text"
+        },
+        {
+          "name": "blob_id",
+          "ordinal": 4,
+          "type_info": "Text"
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "parameters": {
+        "Left": [
+          "Text"
+        ]
+      }
+    },
+    "query": "\nselect * from attachments\nwhere id = $1\n            "
+  },
+  "a7f6310e71dab113c2e03dc84f9278dcec1a5bb5946a4f7440c0e7a49b1fe3df": {
+    "describe": {
+      "columns": [
+        {
+          "name": "id",
+          "ordinal": 0,
+          "type_info": "Text"
+        },
+        {
+          "name": "body",
+          "ordinal": 1,
+          "type_info": "Text"
+        },
+        {
+          "name": "created_at",
+          "ordinal": 2,
+          "type_info": "Timestamptz"
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        false
+      ],
+      "parameters": {
+        "Left": [
+          "Text"
+        ]
+      }
+    },
+    "query": "\nselect * from tweets\nwhere id = $1\n            "
+  },
+  "c46239dee5da7d37a08f93e32d38c2c6227e427199c4b9818db6b377dcd174c9": {
     "describe": {
       "columns": [],
       "nullable": [],
@@ -29,20 +166,33 @@
         ]
       }
     },
-    "query": "\ninsert into attachments (id, record_type, record_name, record_id, blob_id)\nvalues ($1, $2, $3, $4, $5)\n            "
+    "query": "\ninsert into attachments (id, record_type, record_name, record_id, blob_id)\nvalues ($1, $2, $3, $4, $5)\non conflict (id)\ndo update\nset record_type = $2, record_name = $3, record_id = $4, blob_id = $5\n            "
   },
-  "c58301e6b866196c5cba1bd45e7243ad19bb6765d354412b9725fa31a791524f": {
+  "f2554a742fcac54d43244bc80795f167256d7f6019a1fed58d84718f68de0296": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          "Text"
+        ]
+      }
+    },
+    "query": "\ndelete from attachments\nwhere id = $1\n            "
+  },
+  "fafa8d8b1a622fc001e7b7d09c409013cd7353426589bc6a15e3bc5ea4fe24a0": {
     "describe": {
       "columns": [],
       "nullable": [],
       "parameters": {
         "Left": [
           "Text",
-          "Text",
+          "Bytea",
+          "Json",
           "Timestamptz"
         ]
       }
     },
-    "query": "\ninsert into tweets (id, body, created_at)\nvalues ($1, $2, $3)\n        "
+    "query": "\ninsert into blobs (id, bytes, metadata, created_at)\nvalues ($1, $2, $3, $4)\non conflict (id)\ndo update\nset bytes = $2, metadata = $3, created_at = $4\n            "
   }
 }

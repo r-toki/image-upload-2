@@ -1,4 +1,5 @@
-pub mod attachment;
 pub mod blob;
-mod lib;
-pub mod tweet;
+mod tweet;
+
+pub use blob as Blob;
+pub use tweet::*;

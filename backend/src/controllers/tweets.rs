@@ -1,7 +1,4 @@
-use crate::{
-    lib::error::Result,
-    models::command::{attachment::Attachment, tweet::Tweet},
-};
+use crate::{lib::error::Result, models::command};
 
 use actix_web::{
     post,
@@ -23,17 +20,7 @@ struct Create {
 
 #[post("/tweets")]
 async fn create(pool: Data<PgPool>, form: Json<Create>) -> Result<Json<()>> {
-    let mut tx = pool.begin().await?;
-
-    let tweet = Tweet::new(form.body.clone())?;
-    tweet.insert(&mut tx).await?;
-
-    for blob_id in form.blob_ids.clone() {
-        let attachment =
-            Attachment::new("tweets".into(), "images".into(), tweet.id.clone(), blob_id);
-        attachment.insert(&mut tx).await?;
-    }
-
-    tx.commit().await?;
+    let tweet = command::Tweet::new(form.body.clone(), form.blob_ids.clone())?;
+    tweet.upsert(&**pool).await?;
     Ok(Json(()))
 }
