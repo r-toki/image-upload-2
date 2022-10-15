@@ -1,6 +1,6 @@
-import axios from 'axios';
 import { useAsyncFn } from 'react-use';
 
+import { axios } from '@/lib/axios';
 import { EncodedFile } from '@/lib/encoded-file';
 
 export const useCreateBlob = () => {
@@ -9,7 +9,9 @@ export const useCreateBlob = () => {
     const blobId = await axios
       .post<string>('/blobs', {
         encodedBytes: encodedFile.encodedBytes,
-        contentType: encodedFile.contentType,
+        metadata: {
+          contentType: encodedFile.contentType,
+        },
       })
       .then((res) => res.data);
     return blobId;

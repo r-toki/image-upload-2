@@ -15,6 +15,7 @@ pub fn init(cfg: &mut ServiceConfig) {
 }
 
 #[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
 struct Create {
     body: String,
     blob_ids: Vec<String>,
