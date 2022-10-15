@@ -20,7 +20,7 @@ struct Create {
 
 #[post("/tweets")]
 async fn create(pool: Data<PgPool>, form: Json<Create>) -> Result<Json<()>> {
-    let tweet = command::Tweet::new(form.body.clone(), form.blob_ids.clone())?;
-    tweet.upsert(&**pool).await?;
+    let tweet = command::Tweet::create(form.body.clone(), form.blob_ids.clone())?;
+    tweet.store(&**pool).await?;
     Ok(Json(()))
 }

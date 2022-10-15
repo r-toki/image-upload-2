@@ -1,77 +1,147 @@
-use crate::models::{
-    lib::{get_current_date_time, get_new_id},
-    table,
-};
+use crate::models::lib::{get_current_date_time, get_new_id};
 
 use chrono::{DateTime, Utc};
-use sqlx::PgPool;
+use derive_new::new;
+use sqlx::{query, PgPool};
 use validator::Validate;
 
-#[derive(Debug, Clone, Validate)]
+#[derive(new, Debug, Validate)]
 pub struct Tweet {
     pub id: String,
     #[validate(length(min = 1, max = 140))]
     pub body: String,
-    pub created_at: DateTime<Utc>,
     #[validate(length(max = 3))]
     pub blob_ids: Vec<String>,
+    pub created_at: DateTime<Utc>,
+    pub updated_at: DateTime<Utc>,
 }
 
 impl Tweet {
-    pub fn new(body: String, blob_ids: Vec<String>) -> anyhow::Result<Self> {
+    pub fn create(body: String, blob_ids: Vec<String>) -> anyhow::Result<Self> {
+        let now = get_current_date_time();
         let tweet = Self {
             id: get_new_id(),
             body,
-            created_at: get_current_date_time(),
             blob_ids,
+            created_at: now,
+            updated_at: now,
         };
         tweet.validate()?;
         Ok(tweet)
     }
 
-    pub async fn upsert(&self, pool: &PgPool) -> anyhow::Result<()> {
+    pub fn update(&mut self, body: String, blob_ids: Vec<String>) -> anyhow::Result<()> {
+        self.body = body;
+        self.blob_ids = blob_ids;
+        self.updated_at = get_current_date_time();
+        self.validate()?;
+        Ok(())
+    }
+
+    pub async fn store(&self, pool: &PgPool) -> anyhow::Result<()> {
         let mut tx = pool.begin().await?;
 
-        let tweet = self.to_owned();
+        query!(
+            r#"
+insert into tweets (id, body, created_at, updated_at)
+values ($1, $2, $3, $4)
+on conflict (id)
+do update
+set body = $2, created_at = $3, updated_at = $4
+            "#,
+            self.id,
+            self.body,
+            self.created_at,
+            self.updated_at
+        )
+        .execute(&mut tx)
+        .await?;
 
-        let t_tweet: table::Tweet = tweet.clone().into();
-        let t_attachments: Vec<table::Attachment> = tweet.clone().into();
+        let prev_blob_ids: Vec<String> = query!(
+            r#"
+select blob_id from attachments
+where record_type = 'tweets'
+and record_name = 'images'
+and record_id = $1
+            "#,
+            self.id
+        )
+        .fetch_all(&mut tx)
+        .await?
+        .into_iter()
+        .map(|r| r.blob_id)
+        .collect();
 
-        t_tweet.upsert(&mut tx).await?;
-        for t_attachment in t_attachments.iter() {
-            t_attachment.upsert(&mut tx).await?;
+        let added_blob_ids: Vec<String> = self
+            .blob_ids
+            .clone()
+            .into_iter()
+            .filter(|blob_id| !prev_blob_ids.contains(blob_id))
+            .collect();
+
+        let removed_blob_ids: Vec<String> = prev_blob_ids
+            .into_iter()
+            .filter(|prev_blob_id| !self.blob_ids.contains(prev_blob_id))
+            .collect();
+
+        for added_blob_id in added_blob_ids.iter() {
+            query!(
+                r#"
+insert into attachments (id, record_type, record_name, record_id, blob_id)
+values ($1, 'tweets', 'images', $2, $3)
+                "#,
+                get_new_id(),
+                self.id,
+                added_blob_id
+            )
+            .execute(&mut tx)
+            .await?;
+        }
+
+        for removed_blob_id in removed_blob_ids.iter() {
+            query!(
+                r#"
+delete from blobs
+where id = $1
+                "#,
+                removed_blob_id
+            )
+            .execute(&mut tx)
+            .await?;
         }
 
         tx.commit().await?;
 
         Ok(())
     }
-}
 
-impl From<Tweet> for table::Tweet {
-    fn from(tweet: Tweet) -> Self {
-        Self {
-            id: tweet.id,
-            body: tweet.body,
-            created_at: tweet.created_at,
+    pub async fn delete(&self, pool: &PgPool) -> anyhow::Result<()> {
+        let mut tx = pool.begin().await?;
+
+        query!(
+            r#"
+delete from tweets
+where id = $1
+            "#,
+            self.id
+        )
+        .execute(&mut tx)
+        .await?;
+
+        for blob_id in self.blob_ids.iter() {
+            query!(
+                r#"
+delete from blobs
+where id = $1
+                "#,
+                blob_id
+            )
+            .execute(&mut tx)
+            .await?;
         }
-    }
-}
 
-impl From<Tweet> for Vec<table::Attachment> {
-    fn from(tweet: Tweet) -> Self {
-        tweet
-            .blob_ids
-            .iter()
-            .map(|blob_id| {
-                table::Attachment::new(
-                    get_new_id(),
-                    "tweets".into(),
-                    "images".into(),
-                    tweet.id.clone(),
-                    blob_id.clone(),
-                )
-            })
-            .collect()
+        tx.commit().await?;
+
+        Ok(())
     }
 }

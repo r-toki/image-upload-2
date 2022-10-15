@@ -9,9 +9,7 @@ export const useCreateBlob = () => {
     const blobId = await axios
       .post<string>('/blobs', {
         encodedBytes: encodedFile.encodedBytes,
-        metadata: {
-          contentType: encodedFile.contentType,
-        },
+        contentType: encodedFile.contentType,
       })
       .then((res) => res.data);
     return blobId;

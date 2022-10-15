@@ -1,13 +1,42 @@
-use crate::models::{
-    lib::{get_current_date_time, get_new_id},
-    table,
-};
+use crate::models::lib::{get_current_date_time, get_new_id};
 
-pub fn new(encoded_bytes: String, content_type: String) -> anyhow::Result<table::Blob> {
-    Ok(table::Blob::new(
-        get_new_id(),
-        base64::decode(encoded_bytes)?,
-        table::blob::Metadata::new(content_type).try_into()?,
-        get_current_date_time(),
-    ))
+use chrono::{DateTime, Utc};
+use derive_new::new;
+use sqlx::{query, PgPool};
+
+#[derive(new, Debug)]
+pub struct Blob {
+    pub id: String,
+    pub bytes: Vec<u8>,
+    pub content_type: String,
+    pub created_at: DateTime<Utc>,
+}
+
+impl Blob {
+    pub fn create(encoded_bytes: String, content_type: String) -> anyhow::Result<Self> {
+        let blob = Self {
+            id: get_new_id(),
+            bytes: base64::decode(encoded_bytes)?,
+            content_type,
+            created_at: get_current_date_time(),
+        };
+        Ok(blob)
+    }
+
+    pub async fn store(&self, pool: &PgPool) -> anyhow::Result<()> {
+        query!(
+            r#"
+insert into blobs (id, bytes, content_type, created_at)
+values ($1, $2, $3, $4)
+            "#,
+            self.id,
+            self.bytes,
+            self.content_type,
+            self.created_at
+        )
+        .execute(pool)
+        .await
+        .map(|_| ())
+        .map_err(Into::into)
+    }
 }

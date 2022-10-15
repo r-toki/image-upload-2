@@ -1,5 +1,5 @@
-pub mod blob;
+mod blob;
 mod tweet;
 
-pub use blob as Blob;
+pub use blob::*;
 pub use tweet::*;
