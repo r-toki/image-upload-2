@@ -1,11 +1,10 @@
 use crate::models::lib::{get_current_date_time, get_new_id};
 
 use chrono::{DateTime, Utc};
-use derive_new::new;
 use sqlx::{query, PgPool};
 use validator::Validate;
 
-#[derive(new, Debug, Validate)]
+#[derive(Debug, Validate)]
 pub struct Tweet {
     pub id: String,
     #[validate(length(min = 1, max = 140))]

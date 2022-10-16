@@ -1,13 +1,22 @@
-import { FormEventHandler } from 'react';
+import { FormEventHandler, useEffect } from 'react';
 
 import { AppLayout } from '@/components/AppLayout';
 import { useCreateBlob } from '@/hooks/useCreateBlob';
 import { useCreateTweet } from '@/hooks/useCreateTweet';
+import { useFetchTweets } from '@/hooks/useFetchTweets';
 import { useMultipleFileInput } from '@/hooks/useMultipleFileInput';
 import { useObjectUrl } from '@/hooks/useObjectUrl';
 import { useTextInput } from '@/hooks/useTextInput';
 
 export const Home = () => {
+  const [state, fetchTweets] = useFetchTweets();
+
+  useEffect(() => {
+    fetchTweets();
+  }, []);
+
+  console.log(state);
+
   return (
     <AppLayout>
       <TweetCreateForm />

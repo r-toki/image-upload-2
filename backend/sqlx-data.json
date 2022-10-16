@@ -59,6 +59,42 @@
     },
     "query": "\ninsert into tweets (id, body, created_at, updated_at)\nvalues ($1, $2, $3, $4)\non conflict (id)\ndo update\nset body = $2, created_at = $3, updated_at = $4\n            "
   },
+  "e5d24fad06dae53f5b35b9eec5b2e2a06baeceb320e5dbbcb0154f08570d43d6": {
+    "describe": {
+      "columns": [
+        {
+          "name": "id",
+          "ordinal": 0,
+          "type_info": "Text"
+        },
+        {
+          "name": "body",
+          "ordinal": 1,
+          "type_info": "Text"
+        },
+        {
+          "name": "images",
+          "ordinal": 2,
+          "type_info": "Json"
+        },
+        {
+          "name": "created_at",
+          "ordinal": 3,
+          "type_info": "Timestamptz"
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        null,
+        false
+      ],
+      "parameters": {
+        "Left": []
+      }
+    },
+    "query": "\nselect\nt.id as id,\nt.body as body,\njson_agg(json_build_object('bytes', b.bytes, 'content_type', b.content_type)) as images,\nt.created_at as created_at\nfrom tweets as t, attachments as a, blobs as b\nwhere a.record_type = 'tweets'\nand a.record_name = 'images'\nand a.record_id = t.id\nand a.blob_id = b.id\ngroup by t.id\n        "
+  },
   "e640d1818811329142a4138ddbd5dc9fedad96e0a7548dd023625fad14a5529b": {
     "describe": {
       "columns": [],

@@ -1,10 +1,9 @@
 use crate::models::lib::{get_current_date_time, get_new_id};
 
 use chrono::{DateTime, Utc};
-use derive_new::new;
 use sqlx::{query, PgPool};
 
-#[derive(new, Debug)]
+#[derive(Debug)]
 pub struct Blob {
     pub id: String,
     pub bytes: Vec<u8>,
