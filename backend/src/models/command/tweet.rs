@@ -42,12 +42,15 @@ impl Tweet {
 }
 
 impl Tweet {
-    pub async fn find(executor: impl PgExecutor<'_>, id: String) -> anyhow::Result<Tweet> {
-        let raw_tweet = query!(
+    pub async fn find_by_id(
+        executor: impl PgExecutor<'_>,
+        id: String,
+    ) -> anyhow::Result<Option<Tweet>> {
+        let r = query!(
             r#"
 select t.id id, t.body body, array_agg(a.blob_id) blob_ids, t.created_at created_at, t.updated_at updated_at
 from tweets t
-join attachments a
+left join attachments a
 on a.record_type = 'tweets'
 and a.record_name = 'images'
 and a.record_id = t.id
@@ -56,18 +59,18 @@ group by t.id
             "#,
             id
         )
-        .fetch_one(executor)
+        .fetch_optional(executor)
         .await?;
 
-        let tweet = Tweet::new(
-            raw_tweet.id,
-            raw_tweet.body,
-            raw_tweet.blob_ids.unwrap_or(vec![]),
-            raw_tweet.created_at,
-            raw_tweet.updated_at,
-        );
-
-        Ok(tweet)
+        Ok(r.map(|r| {
+            Tweet::new(
+                r.id,
+                r.body,
+                r.blob_ids.unwrap_or(vec![]),
+                r.created_at,
+                r.updated_at,
+            )
+        }))
     }
 
     pub async fn store(pool: &PgPool, tweet: &Tweet) -> anyhow::Result<()> {
@@ -89,25 +92,27 @@ set body = $2, created_at = $3, updated_at = $4
         .execute(&mut tx)
         .await?;
 
-        let prev_tweet = Tweet::find(&mut tx, tweet.id.clone()).await?;
+        let prev_tweet = Tweet::find_by_id(&mut tx, tweet.id.clone()).await?;
+        if prev_tweet.is_some() {
+            let prev_tweet = prev_tweet.unwrap();
+            let added_blob_ids = vec_diff(tweet.blob_ids.clone(), prev_tweet.blob_ids.clone());
+            let removed_blob_ids = vec_diff(prev_tweet.blob_ids.clone(), tweet.blob_ids.clone());
 
-        let added_blob_ids = vec_diff(tweet.blob_ids.clone(), prev_tweet.blob_ids.clone());
-        let removed_blob_ids = vec_diff(prev_tweet.blob_ids.clone(), tweet.blob_ids.clone());
-
-        for added_blob_id in added_blob_ids {
-            Attachment::store(
-                &mut tx,
-                &Attachment::create(
-                    "tweets".into(),
-                    "images".into(),
-                    tweet.id.clone(),
-                    added_blob_id,
-                ),
-            )
-            .await?;
-        }
-        for removed_blob_id in removed_blob_ids {
-            Attachment::delete(&mut tx, removed_blob_id).await?;
+            for added_blob_id in added_blob_ids {
+                Attachment::store(
+                    &mut tx,
+                    &Attachment::create(
+                        "tweets".into(),
+                        "images".into(),
+                        tweet.id.clone(),
+                        added_blob_id,
+                    ),
+                )
+                .await?;
+            }
+            for removed_blob_id in removed_blob_ids {
+                Attachment::delete(&mut tx, removed_blob_id).await?;
+            }
         }
 
         tx.commit().await?;
@@ -128,10 +133,12 @@ where id = $1
         .execute(&mut tx)
         .await?;
 
-        let tweet = Tweet::find(&mut tx, id).await?;
-
-        for blob_id in tweet.blob_ids {
-            Attachment::delete(&mut tx, blob_id).await?;
+        let tweet = Tweet::find_by_id(&mut tx, id).await?;
+        if tweet.is_some() {
+            let blob_ids = tweet.unwrap().blob_ids;
+            for blob_id in blob_ids {
+                Attachment::delete(&mut tx, blob_id).await?;
+            }
         }
 
         tx.commit().await?;

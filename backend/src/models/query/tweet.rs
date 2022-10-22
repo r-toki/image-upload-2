@@ -14,7 +14,7 @@ pub struct Tweet {
 }
 
 pub async fn find_tweets(pool: &PgPool) -> anyhow::Result<Vec<Tweet>> {
-    let raw_tweets = query!(
+    let r = query!(
         r#"
 select t.id id, t.body body, array_agg(a.blob_id) blob_ids, t.created_at created_at, t.updated_at updated_at
 from tweets t
@@ -23,23 +23,21 @@ on a.record_type = 'tweets'
 and a.record_name = 'images'
 and a.record_id = t.id
 group by t.id
-            "#
-    )
-    .fetch_all(pool)
-    .await?;
+order by created_at desc
+        "#
+        )
+        .fetch_all(pool)
+        .await?;
 
-    let tweets = raw_tweets
-        .into_iter()
-        .map(|r_t| {
+    Ok(r.into_iter()
+        .map(|r| {
             Tweet::new(
-                r_t.id,
-                r_t.body,
-                r_t.blob_ids.unwrap_or(vec![]),
-                r_t.created_at,
-                r_t.updated_at,
+                r.id,
+                r.body,
+                r.blob_ids.unwrap_or(vec![]),
+                r.created_at,
+                r.updated_at,
             )
         })
-        .collect();
-
-    Ok(tweets)
+        .collect())
 }

@@ -5,10 +5,7 @@ import { axios } from '@/lib/axios';
 export type Tweet = {
   id: string;
   body: string;
-  images: {
-    encodedBytes: string;
-    contentType: string;
-  };
+  blobIds: string[];
   createdAt: string;
 };
 
