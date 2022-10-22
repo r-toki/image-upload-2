@@ -1,37 +1,5 @@
 {
   "db": "PostgreSQL",
-  "141ef2740bc8351fc596968d9bc4ec60d60120d51fa4a325c37cc6328fe75a33": {
-    "describe": {
-      "columns": [
-        {
-          "name": "blob_id",
-          "ordinal": 0,
-          "type_info": "Text"
-        }
-      ],
-      "nullable": [
-        false
-      ],
-      "parameters": {
-        "Left": [
-          "Text"
-        ]
-      }
-    },
-    "query": "\nselect blob_id from attachments\nwhere record_type = 'tweets'\nand record_name = 'images'\nand record_id = $1\n            "
-  },
-  "206dbb4c76cdea0af6ee4c34050e6ea213c631dd897cfe6bb76d17ea1acf0632": {
-    "describe": {
-      "columns": [],
-      "nullable": [],
-      "parameters": {
-        "Left": [
-          "Text"
-        ]
-      }
-    },
-    "query": "\ndelete from blobs\nwhere id = $1\n                "
-  },
   "3a01946bb22b4ab6fb1ace120b9f1a714a95c77beef3e05c009d2b37125a4513": {
     "describe": {
       "columns": [],
@@ -44,22 +12,7 @@
     },
     "query": "\ndelete from tweets\nwhere id = $1\n            "
   },
-  "909e3d12863af5169227a4bd4a4baa08006f97410c9aab00b6f794c6c07d6ff2": {
-    "describe": {
-      "columns": [],
-      "nullable": [],
-      "parameters": {
-        "Left": [
-          "Text",
-          "Text",
-          "Timestamptz",
-          "Timestamptz"
-        ]
-      }
-    },
-    "query": "\ninsert into tweets (id, body, created_at, updated_at)\nvalues ($1, $2, $3, $4)\non conflict (id)\ndo update\nset body = $2, created_at = $3, updated_at = $4\n            "
-  },
-  "e5d24fad06dae53f5b35b9eec5b2e2a06baeceb320e5dbbcb0154f08570d43d6": {
+  "3ce4e4196258e97d4554f594eba2f77c4650d0021cefbbe17e2e8ecb4b0468c0": {
     "describe": {
       "columns": [
         {
@@ -73,9 +26,9 @@
           "type_info": "Text"
         },
         {
-          "name": "images",
+          "name": "blob_ids",
           "ordinal": 2,
-          "type_info": "Json"
+          "type_info": "TextArray"
         },
         {
           "name": "created_at",
@@ -93,9 +46,9 @@
         "Left": []
       }
     },
-    "query": "\nselect\nt.id as id,\nt.body as body,\njson_agg(json_build_object('bytes', b.bytes, 'content_type', b.content_type)) as images,\nt.created_at as created_at\nfrom tweets as t, attachments as a, blobs as b\nwhere a.record_type = 'tweets'\nand a.record_name = 'images'\nand a.record_id = t.id\nand a.blob_id = b.id\ngroup by t.id\n        "
+    "query": "\nselect t.id id, t.body body, array_agg(a.blob_id) blob_ids, t.created_at created_at\nfrom tweets t\njoin attachments a\non a.record_type = 'tweets'\nand a.record_name = 'images'\nand a.record_id = t.id\ngroup by t.id\n            "
   },
-  "e640d1818811329142a4138ddbd5dc9fedad96e0a7548dd023625fad14a5529b": {
+  "909e3d12863af5169227a4bd4a4baa08006f97410c9aab00b6f794c6c07d6ff2": {
     "describe": {
       "columns": [],
       "nullable": [],
@@ -103,11 +56,12 @@
         "Left": [
           "Text",
           "Text",
-          "Text"
+          "Timestamptz",
+          "Timestamptz"
         ]
       }
     },
-    "query": "\ninsert into attachments (id, record_type, record_name, record_id, blob_id)\nvalues ($1, 'tweets', 'images', $2, $3)\n                "
+    "query": "\ninsert into tweets (id, body, created_at, updated_at)\nvalues ($1, $2, $3, $4)\non conflict (id)\ndo update\nset body = $2, created_at = $3, updated_at = $4\n            "
   },
   "f6cfda816078b1183ddabeb3244be8f7c93bd77e0bd6bbdb08607a5f5dd4724a": {
     "describe": {

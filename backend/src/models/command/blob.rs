@@ -21,7 +21,9 @@ impl Blob {
         };
         Ok(blob)
     }
+}
 
+impl Blob {
     pub async fn store(&self, pool: &PgPool) -> anyhow::Result<()> {
         query!(
             r#"

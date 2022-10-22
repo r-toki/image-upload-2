@@ -36,7 +36,9 @@ impl Tweet {
         self.validate()?;
         Ok(())
     }
+}
 
+impl Tweet {
     pub async fn store(&self, pool: &PgPool) -> anyhow::Result<()> {
         let mut tx = pool.begin().await?;
 
@@ -56,59 +58,6 @@ set body = $2, created_at = $3, updated_at = $4
         .execute(&mut tx)
         .await?;
 
-        let prev_blob_ids: Vec<String> = query!(
-            r#"
-select blob_id from attachments
-where record_type = 'tweets'
-and record_name = 'images'
-and record_id = $1
-            "#,
-            self.id
-        )
-        .fetch_all(&mut tx)
-        .await?
-        .into_iter()
-        .map(|r| r.blob_id)
-        .collect();
-
-        let added_blob_ids: Vec<String> = self
-            .blob_ids
-            .clone()
-            .into_iter()
-            .filter(|blob_id| !prev_blob_ids.contains(blob_id))
-            .collect();
-
-        let removed_blob_ids: Vec<String> = prev_blob_ids
-            .into_iter()
-            .filter(|prev_blob_id| !self.blob_ids.contains(prev_blob_id))
-            .collect();
-
-        for added_blob_id in added_blob_ids.iter() {
-            query!(
-                r#"
-insert into attachments (id, record_type, record_name, record_id, blob_id)
-values ($1, 'tweets', 'images', $2, $3)
-                "#,
-                get_new_id(),
-                self.id,
-                added_blob_id
-            )
-            .execute(&mut tx)
-            .await?;
-        }
-
-        for removed_blob_id in removed_blob_ids.iter() {
-            query!(
-                r#"
-delete from blobs
-where id = $1
-                "#,
-                removed_blob_id
-            )
-            .execute(&mut tx)
-            .await?;
-        }
-
         tx.commit().await?;
 
         Ok(())
@@ -126,18 +75,6 @@ where id = $1
         )
         .execute(&mut tx)
         .await?;
-
-        for blob_id in self.blob_ids.iter() {
-            query!(
-                r#"
-delete from blobs
-where id = $1
-                "#,
-                blob_id
-            )
-            .execute(&mut tx)
-            .await?;
-        }
 
         tx.commit().await?;
 
