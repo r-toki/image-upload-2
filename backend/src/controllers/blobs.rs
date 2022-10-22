@@ -1,5 +1,5 @@
 use crate::lib::error::Result;
-use crate::models::command;
+use crate::models::table;
 
 use actix_web::{
     post,
@@ -21,7 +21,7 @@ struct Create {
 
 #[post("/blobs")]
 async fn create(pool: Data<PgPool>, form: Json<Create>) -> Result<Json<String>> {
-    let blob = command::Blob::create(form.encoded_bytes.clone(), form.content_type.clone())?;
-    blob.store(&**pool).await?;
+    let blob = table::Blob::create(form.encoded_bytes.clone(), form.content_type.clone())?;
+    table::Blob::store(&**pool, &blob).await?;
     Ok(Json(blob.id))
 }
