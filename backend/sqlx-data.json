@@ -68,6 +68,70 @@
     },
     "query": "\ndelete from tweets\nwhere id = $1\n            "
   },
+  "55cd051c2b25a944199b9f8b65938d90a5d459cca87bed6bd37fa1e0e99fecd0": {
+    "describe": {
+      "columns": [
+        {
+          "name": "array",
+          "ordinal": 0,
+          "type_info": "Int4Array"
+        }
+      ],
+      "nullable": [
+        null
+      ],
+      "parameters": {
+        "Left": []
+      }
+    },
+    "query": "\nselect array[1,2,3,4,5]\n            "
+  },
+  "5aef6c7506c154eb0422aa24f781db979a7920207d72615d83b281a1005b2c92": {
+    "describe": {
+      "columns": [
+        {
+          "name": "id",
+          "ordinal": 0,
+          "type_info": "Text"
+        },
+        {
+          "name": "record_type",
+          "ordinal": 1,
+          "type_info": "Text"
+        },
+        {
+          "name": "record_name",
+          "ordinal": 2,
+          "type_info": "Text"
+        },
+        {
+          "name": "record_id",
+          "ordinal": 3,
+          "type_info": "Text"
+        },
+        {
+          "name": "blob_id",
+          "ordinal": 4,
+          "type_info": "Text"
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "parameters": {
+        "Left": [
+          "Text",
+          "Text",
+          "Text"
+        ]
+      }
+    },
+    "query": "\nselect * from attachments\nwhere $1::text is null or record_type = $1\nand $2::text is null or record_name = $2\nand $3::text is null or record_id = $3\n            "
+  },
   "5bdd23153f231b6a621147e4900eced16456ee040816053ccffe72d70b4b15f0": {
     "describe": {
       "columns": [

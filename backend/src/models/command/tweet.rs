@@ -1,8 +1,10 @@
+use crate::lib::utils::vec_diff;
 use crate::models::lib::{get_current_date_time, get_new_id};
+use crate::models::table::Attachment;
 
 use chrono::{DateTime, Utc};
 use derive_new::new;
-use sqlx::{query, PgPool};
+use sqlx::{query, PgExecutor, PgPool};
 use validator::Validate;
 
 #[derive(new, Debug, Validate)]
@@ -40,7 +42,7 @@ impl Tweet {
 }
 
 impl Tweet {
-    pub async fn find(pool: &PgPool, id: String) -> anyhow::Result<Tweet> {
+    pub async fn find(executor: impl PgExecutor<'_>, id: String) -> anyhow::Result<Tweet> {
         let raw_tweet = query!(
             r#"
 select t.id id, t.body body, array_agg(a.blob_id) blob_ids, t.created_at created_at, t.updated_at updated_at
@@ -53,7 +55,9 @@ where t.id = $1
 group by t.id
             "#,
             id
-        ).fetch_one(pool).await?;
+        )
+        .fetch_one(executor)
+        .await?;
 
         let tweet = Tweet::new(
             raw_tweet.id,
@@ -85,6 +89,27 @@ set body = $2, created_at = $3, updated_at = $4
         .execute(&mut tx)
         .await?;
 
+        let prev_tweet = Tweet::find(&mut tx, tweet.id.clone()).await?;
+
+        let added_blob_ids = vec_diff(tweet.blob_ids.clone(), prev_tweet.blob_ids.clone());
+        let removed_blob_ids = vec_diff(prev_tweet.blob_ids.clone(), tweet.blob_ids.clone());
+
+        for added_blob_id in added_blob_ids {
+            Attachment::store(
+                &mut tx,
+                &Attachment::create(
+                    "tweets".into(),
+                    "images".into(),
+                    tweet.id.clone(),
+                    added_blob_id,
+                ),
+            )
+            .await?;
+        }
+        for removed_blob_id in removed_blob_ids {
+            Attachment::delete(&mut tx, removed_blob_id).await?;
+        }
+
         tx.commit().await?;
 
         Ok(())
@@ -102,6 +127,12 @@ where id = $1
         )
         .execute(&mut tx)
         .await?;
+
+        let tweet = Tweet::find(&mut tx, id).await?;
+
+        for blob_id in tweet.blob_ids {
+            Attachment::delete(&mut tx, blob_id).await?;
+        }
 
         tx.commit().await?;
 
