@@ -12,19 +12,7 @@
     },
     "query": "\ndelete from blobs\nwhere id = $1\n            "
   },
-  "3a01946bb22b4ab6fb1ace120b9f1a714a95c77beef3e05c009d2b37125a4513": {
-    "describe": {
-      "columns": [],
-      "nullable": [],
-      "parameters": {
-        "Left": [
-          "Text"
-        ]
-      }
-    },
-    "query": "\ndelete from tweets\nwhere id = $1\n            "
-  },
-  "3ce4e4196258e97d4554f594eba2f77c4650d0021cefbbe17e2e8ecb4b0468c0": {
+  "0820be62c3b9c12e3b2186ca03f5c3da50fccb9e592caa470ac656f3b7d17c0a": {
     "describe": {
       "columns": [
         {
@@ -46,19 +34,39 @@
           "name": "created_at",
           "ordinal": 3,
           "type_info": "Timestamptz"
+        },
+        {
+          "name": "updated_at",
+          "ordinal": 4,
+          "type_info": "Timestamptz"
         }
       ],
       "nullable": [
         false,
         false,
         null,
+        false,
         false
       ],
       "parameters": {
-        "Left": []
+        "Left": [
+          "Text"
+        ]
       }
     },
-    "query": "\nselect t.id id, t.body body, array_agg(a.blob_id) blob_ids, t.created_at created_at\nfrom tweets t\njoin attachments a\non a.record_type = 'tweets'\nand a.record_name = 'images'\nand a.record_id = t.id\ngroup by t.id\n            "
+    "query": "\nselect t.id id, t.body body, array_agg(a.blob_id) blob_ids, t.created_at created_at, t.updated_at updated_at\nfrom tweets t\njoin attachments a\non a.record_type = 'tweets'\nand a.record_name = 'images'\nand a.record_id = t.id\nwhere t.id = $1\ngroup by t.id\n            "
+  },
+  "3a01946bb22b4ab6fb1ace120b9f1a714a95c77beef3e05c009d2b37125a4513": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          "Text"
+        ]
+      }
+    },
+    "query": "\ndelete from tweets\nwhere id = $1\n            "
   },
   "5bdd23153f231b6a621147e4900eced16456ee040816053ccffe72d70b4b15f0": {
     "describe": {
@@ -97,6 +105,48 @@
       }
     },
     "query": "\nselect * from blobs\nwhere id = $1\n            "
+  },
+  "8944dacff24cb7ceb02bfacc5c8abe0be13ccb3859d3970c583a38aa1ac6eaea": {
+    "describe": {
+      "columns": [
+        {
+          "name": "id",
+          "ordinal": 0,
+          "type_info": "Text"
+        },
+        {
+          "name": "body",
+          "ordinal": 1,
+          "type_info": "Text"
+        },
+        {
+          "name": "blob_ids",
+          "ordinal": 2,
+          "type_info": "TextArray"
+        },
+        {
+          "name": "created_at",
+          "ordinal": 3,
+          "type_info": "Timestamptz"
+        },
+        {
+          "name": "updated_at",
+          "ordinal": 4,
+          "type_info": "Timestamptz"
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        null,
+        false,
+        false
+      ],
+      "parameters": {
+        "Left": []
+      }
+    },
+    "query": "\nselect t.id id, t.body body, array_agg(a.blob_id) blob_ids, t.created_at created_at, t.updated_at updated_at\nfrom tweets t\njoin attachments a\non a.record_type = 'tweets'\nand a.record_name = 'images'\nand a.record_id = t.id\ngroup by t.id\n            "
   },
   "909e3d12863af5169227a4bd4a4baa08006f97410c9aab00b6f794c6c07d6ff2": {
     "describe": {

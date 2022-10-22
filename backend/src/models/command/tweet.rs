@@ -1,10 +1,11 @@
 use crate::models::lib::{get_current_date_time, get_new_id};
 
 use chrono::{DateTime, Utc};
+use derive_new::new;
 use sqlx::{query, PgPool};
 use validator::Validate;
 
-#[derive(Debug, Validate)]
+#[derive(new, Debug, Validate)]
 pub struct Tweet {
     pub id: String,
     #[validate(length(min = 1, max = 140))]
@@ -39,7 +40,33 @@ impl Tweet {
 }
 
 impl Tweet {
-    pub async fn store(&self, pool: &PgPool) -> anyhow::Result<()> {
+    pub async fn find(pool: &PgPool, id: String) -> anyhow::Result<Tweet> {
+        let raw_tweet = query!(
+            r#"
+select t.id id, t.body body, array_agg(a.blob_id) blob_ids, t.created_at created_at, t.updated_at updated_at
+from tweets t
+join attachments a
+on a.record_type = 'tweets'
+and a.record_name = 'images'
+and a.record_id = t.id
+where t.id = $1
+group by t.id
+            "#,
+            id
+        ).fetch_one(pool).await?;
+
+        let tweet = Tweet::new(
+            raw_tweet.id,
+            raw_tweet.body,
+            raw_tweet.blob_ids.unwrap_or(vec![]),
+            raw_tweet.created_at,
+            raw_tweet.updated_at,
+        );
+
+        Ok(tweet)
+    }
+
+    pub async fn store(pool: &PgPool, tweet: &Tweet) -> anyhow::Result<()> {
         let mut tx = pool.begin().await?;
 
         query!(
@@ -50,10 +77,10 @@ on conflict (id)
 do update
 set body = $2, created_at = $3, updated_at = $4
             "#,
-            self.id,
-            self.body,
-            self.created_at,
-            self.updated_at
+            tweet.id,
+            tweet.body,
+            tweet.created_at,
+            tweet.updated_at
         )
         .execute(&mut tx)
         .await?;
@@ -63,7 +90,7 @@ set body = $2, created_at = $3, updated_at = $4
         Ok(())
     }
 
-    pub async fn delete(&self, pool: &PgPool) -> anyhow::Result<()> {
+    pub async fn delete(pool: &PgPool, id: String) -> anyhow::Result<()> {
         let mut tx = pool.begin().await?;
 
         query!(
@@ -71,7 +98,7 @@ set body = $2, created_at = $3, updated_at = $4
 delete from tweets
 where id = $1
             "#,
-            self.id
+            id
         )
         .execute(&mut tx)
         .await?;

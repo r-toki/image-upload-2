@@ -10,12 +10,13 @@ pub struct Tweet {
     pub body: String,
     pub blob_ids: Vec<String>,
     pub created_at: DateTime<Utc>,
+    pub updated_at: DateTime<Utc>,
 }
 
 pub async fn find_tweets(pool: &PgPool) -> anyhow::Result<Vec<Tweet>> {
     let raw_tweets = query!(
         r#"
-select t.id id, t.body body, array_agg(a.blob_id) blob_ids, t.created_at created_at
+select t.id id, t.body body, array_agg(a.blob_id) blob_ids, t.created_at created_at, t.updated_at updated_at
 from tweets t
 join attachments a
 on a.record_type = 'tweets'
@@ -35,6 +36,7 @@ group by t.id
                 r_t.body,
                 r_t.blob_ids.unwrap_or(vec![]),
                 r_t.created_at,
+                r_t.updated_at,
             )
         })
         .collect();
