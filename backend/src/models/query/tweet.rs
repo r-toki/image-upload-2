@@ -23,6 +23,7 @@ select
     t.created_at created_at,
     t.updated_at updated_at
 from tweets t
+order by t.created_at desc
         "#
     )
     .fetch_all(pool)

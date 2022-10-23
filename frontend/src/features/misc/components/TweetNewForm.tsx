@@ -39,7 +39,6 @@ export const TweetNewForm = ({ onSubmit }: TweetNewFormProps) => {
         flexDirection: 'column',
         gap: '8px',
         alignItems: 'start',
-        width: '480px',
       }}
     >
       <textarea

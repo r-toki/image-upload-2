@@ -26,8 +26,8 @@ export const Home = () => {
   return (
     <AppLayout>
       <TweetNewForm onSubmit={onSubmitNewTweet} />
-
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+      <hr />
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
         {state.value?.map((tweet) => (
           <TweetItem key={tweet.id} tweet={tweet} />
         ))}
