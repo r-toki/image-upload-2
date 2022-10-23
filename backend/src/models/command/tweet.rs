@@ -4,7 +4,7 @@ use crate::models::table::Attachment;
 
 use chrono::{DateTime, Utc};
 use derive_new::new;
-use sqlx::{query, PgExecutor, PgPool};
+use sqlx::{query, query_as, PgExecutor, PgPool};
 use validator::Validate;
 
 #[derive(new, Debug, Validate)]
@@ -46,31 +46,23 @@ impl Tweet {
         executor: impl PgExecutor<'_>,
         id: String,
     ) -> anyhow::Result<Option<Tweet>> {
-        let r = query!(
+        query_as!(
+            Tweet,
             r#"
-select t.id id, t.body body, array_agg(a.blob_id) blob_ids, t.created_at created_at, t.updated_at updated_at
+select
+    t.id id,
+    t.body body,
+    array(select a.blob_id from attachments a where a.record_type = 'tweets' and a.record_name = 'images' and a.record_id = t.id) "blob_ids!",
+    t.created_at created_at,
+    t.updated_at updated_at
 from tweets t
-left join attachments a
-on a.record_type = 'tweets'
-and a.record_name = 'images'
-and a.record_id = t.id
 where t.id = $1
-group by t.id
             "#,
             id
         )
         .fetch_optional(executor)
-        .await?;
-
-        Ok(r.map(|r| {
-            Tweet::new(
-                r.id,
-                r.body,
-                r.blob_ids.unwrap_or(vec![]),
-                r.created_at,
-                r.updated_at,
-            )
-        }))
+        .await
+        .map_err(Into::into)
     }
 
     pub async fn store(pool: &PgPool, tweet: &Tweet) -> anyhow::Result<()> {
@@ -95,6 +87,7 @@ set body = $2, created_at = $3, updated_at = $4
         let prev_tweet = Tweet::find_by_id(&mut tx, tweet.id.clone()).await?;
         if prev_tweet.is_some() {
             let prev_tweet = prev_tweet.unwrap();
+
             let added_blob_ids = vec_diff(tweet.blob_ids.clone(), prev_tweet.blob_ids.clone());
             let removed_blob_ids = vec_diff(prev_tweet.blob_ids.clone(), tweet.blob_ids.clone());
 
